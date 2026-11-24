@@ -1,6 +1,6 @@
 # NiedersachScanner — Compliance by Design
 
-> **Interaktive Projektpräsentation:** [Live-Demo auf GitHub Pages öffnen]([https://vitorpbastos49.github.io/niedersachScanner/](https://vitorpbastos49.github.io/NiedersachScanner/))
+> **Interaktive Projektpräsentation:** [Live-Demo auf GitHub Pages öffnen](https://vitorpbastos49.github.io/NiedersachScanner/)
 
 **NiedersachScanner** ist ein Konzept- und MVP-Projekt aus dem Masterstudiengang *LL.M. European Technology Law* an der Universität Osnabrück. Ziel des Projekts ist es, Studierende bei der Wohnungssuche in Osnabrück vor typischen Betrugsmaschen (z. B. Lockangeboten, Fake-Inseraten und unzulässigen Mietklauseln) zu schützen — und dabei rechtliche Vorgaben von Anfang an direkt in die Softwarearchitektur einzubauen (**Compliance by Design**).
 
@@ -42,4 +42,4 @@ Die Präsentation wurde als eigenständige, interaktive Web-App in **HTML, CSS, 
 
 **Vítor Pires Bastos**  
 LL.M. European Technology Law — Universität Osnabrück  
-[LinkedIn](https://www.linkedin.com/in/vitorpbastos) · [vitorpbastos2002@gmail.com](mailto:vitorpbastos2002@gmail.com)# NiedersachScanner
+[LinkedIn](https://www.linkedin.com/in/vitorpbastos) · [vitorpbastos2002@gmail.com](mailto:vitorpbastos2002@gmail.com)
