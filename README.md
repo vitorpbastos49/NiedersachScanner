@@ -1,6 +1,6 @@
 # NiedersachScanner — Compliance by Design
 
-> **Interaktive Projektpräsentation:** [Live-Demo auf GitHub Pages öffnen](https://SEU-USUARIO.github.io/niedersachscanner/)
+> **Interaktive Projektpräsentation:** [Live-Demo auf GitHub Pages öffnen](https://vitorpbastos49.github.io/niedersachscanner/)
 
 **NiedersachScanner** ist ein Konzept- und MVP-Projekt aus dem Masterstudiengang *LL.M. European Technology Law* an der Universität Osnabrück. Ziel des Projekts ist es, Studierende bei der Wohnungssuche in Osnabrück vor typischen Betrugsmaschen (z. B. Lockangeboten, Fake-Inseraten und unzulässigen Mietklauseln) zu schützen — und dabei rechtliche Vorgaben von Anfang an direkt in die Softwarearchitektur einzubauen (**Compliance by Design**).
 
