@@ -1,0 +1,2380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NiedersachScanner — Compliance by Design Pitch</title>
+
+  <!-- Crisp Editorial & UI Typography matching NiedersachScanner & modern pitch decks -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- GSAP 3.12.5 for master-timeline choreography -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    /* =========================================================================
+       NIEDERSACHSCANNER VISUAL IDENTITY & VIRTUAL 1600x900 STAGE
+       ========================================================================= */
+    :root {
+      --blue: #2563EB;
+      --blue-d: #1D4ED8;
+      --blue-l: #EFF6FF;
+      --blue-m: #BFDBFE;
+      --ink: #0F172A;
+      --ink-2: #475569;
+      --muted: #94A3B8;
+      --mist: #F8FAFC;
+      --line: #E2E8F0;
+
+      --rose: #E11D48;
+      --rose-l: #FFF1F2;
+      --rose-b: #FECDD3;
+
+      --emerald: #059669;
+      --emerald-l: #ECFDF5;
+      --emerald-b: #A7F3D0;
+
+      --amber: #D97706;
+      --amber-l: #FFFBEB;
+      --amber-b: #FDE68A;
+
+      --purple: #7C3AED;
+      --purple-l: #F5F3FF;
+      --purple-b: #DDD6FE;
+
+      --display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #E2E8F0;
+      font-family: var(--body);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    /* Scaled 1600x900 Presentation Canvas (responsive to any viewport) */
+    #canvas {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1600px;
+      height: 900px;
+      margin: -450px 0 0 -800px;
+      transform: scale(var(--s, 1));
+      overflow: hidden;
+      background: #FFFFFF;
+      box-shadow: 0 32px 100px rgba(15, 23, 42, 0.18);
+      cursor: pointer;
+    }
+
+    .scene {
+      position: absolute;
+      inset: 0;
+      visibility: hidden;
+      opacity: 0;
+      overflow: hidden;
+      background: radial-gradient(1200px 760px at 78% 22%, #FFFFFF 0%, #F8FAFC 62%, #EEF2F7 100%);
+    }
+
+    /* Subtle architectural grid background */
+    .grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(37, 99, 235, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(37, 99, 235, 0.045) 1px, transparent 1px);
+      background-size: 64px 64px;
+      pointer-events: none;
+    }
+
+    svg { display: block; }
+
+    /* Animated data flow dashes */
+    .flow-line {
+      fill: none;
+      stroke-linecap: round;
+      animation: flowMove 0.7s linear infinite;
+    }
+    @keyframes flowMove { to { stroke-dashoffset: -36; } }
+
+    .radar-pulse {
+      transform-origin: center;
+      animation: radarPing 2.6s ease-out infinite;
+    }
+    @keyframes radarPing {
+      0% { transform: scale(0.85); opacity: 0.55; }
+      100% { transform: scale(1.65); opacity: 0; }
+    }
+
+    /* =========================================================================
+       SHARED CHROME: CHAPTER LABEL, HEADINGS, PILLS, CARDS
+       ========================================================================= */
+    .chap {
+      position: absolute;
+      left: 84px;
+      top: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font: 700 14px/1 var(--body);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--blue);
+      z-index: 5;
+    }
+    .chap i {
+      width: 28px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--blue);
+      display: block;
+    }
+    .chap .pill-num {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--blue-l);
+      border: 1px solid var(--blue-m);
+      letter-spacing: 0.08em;
+      font-size: 12px;
+    }
+
+    .brand-corner {
+      position: absolute;
+      right: 84px;
+      top: 50px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font: 700 18px/1 var(--display);
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      z-index: 5;
+      opacity: 0.85;
+    }
+    .brand-corner span { color: var(--blue); }
+
+    .s-title {
+      position: absolute;
+      left: 84px;
+      top: 96px;
+      font: 700 50px/1.08 var(--display);
+      letter-spacing: -0.035em;
+      color: var(--ink);
+    }
+    .s-title em { font-style: normal; color: var(--blue); }
+
+    .s-sub {
+      position: absolute;
+      left: 84px;
+      top: 162px;
+      width: 960px;
+      font: 400 20px/1.45 var(--body);
+      color: var(--ink-2);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 32px;
+      padding: 0 14px;
+      border-radius: 999px;
+      font: 700 13px/1 var(--body);
+      letter-spacing: 0.04em;
+    }
+    .tag-blue { background: var(--blue-l); color: var(--blue-d); border: 1px solid var(--blue-m); }
+    .tag-rose { background: var(--rose-l); color: var(--rose); border: 1px solid var(--rose-b); }
+    .tag-emerald { background: var(--emerald-l); color: var(--emerald); border: 1px solid var(--emerald-b); }
+    .tag-amber { background: var(--amber-l); color: var(--amber); border: 1px solid var(--amber-b); }
+    .tag-purple { background: var(--purple-l); color: var(--purple); border: 1px solid var(--purple-b); }
+    .tag-navy { background: #E2E8F0; color: var(--ink); border: 1px solid #CBD5E1; }
+
+    /* =========================================================================
+       SCENE 1: INTRO / BRAND REVEAL
+       ========================================================================= */
+    #sc-intro {
+      background: radial-gradient(1000px 700px at 50% 44%, #FFFFFF 0%, #F1F5F9 100%);
+      visibility: visible;
+      opacity: 1;
+    }
+    #introGlow {
+      position: absolute;
+      left: 800px;
+      top: 340px;
+      width: 780px;
+      height: 780px;
+      margin: -390px 0 0 -390px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37, 99, 235, 0.16) 0%, rgba(37, 99, 235, 0.04) 44%, transparent 68%);
+      opacity: 0;
+    }
+    #introTile {
+      position: absolute;
+      left: 690px;
+      top: 195px;
+      width: 220px;
+      height: 220px;
+      filter: drop-shadow(0 28px 50px rgba(37, 99, 235, 0.28));
+    }
+    #introWord {
+      position: absolute;
+      left: 0;
+      width: 1600px;
+      top: 462px;
+      text-align: center;
+      font: 700 94px/1 var(--display);
+      letter-spacing: -0.04em;
+      color: var(--ink);
+      opacity: 0;
+    }
+    #introWord span { color: var(--blue); }
+    #introSub {
+      position: absolute;
+      left: 0;
+      width: 1600px;
+      top: 576px;
+      text-align: center;
+      font: 500 25px/1.4 var(--body);
+      color: var(--ink-2);
+      opacity: 0;
+    }
+    #introMeta {
+      position: absolute;
+      left: 50%;
+      top: 660px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 14px;
+      opacity: 0;
+    }
+    #introMeta span {
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+      font: 600 15px/1 var(--body);
+      color: var(--ink-2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #introMeta b { color: var(--blue); }
+
+    /* =========================================================================
+       SCENE 2: THE PROBLEM IN OSNABRÜCK
+       ========================================================================= */
+    .prob-grid {
+      position: absolute;
+      left: 84px;
+      right: 84px;
+      top: 238px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+    .p-card {
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 32px 30px;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06);
+      position: relative;
+      overflow: hidden;
+    }
+    .p-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 6px;
+    }
+    .p-card.c-rose::before { background: var(--rose); }
+    .p-card.c-purple::before { background: var(--purple); }
+    .p-card.c-amber::before { background: var(--amber); }
+
+    .p-ic {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 22px;
+    }
+    .p-card h3 {
+      font: 700 28px/1.15 var(--display);
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+    .p-card p {
+      font: 400 17px/1.55 var(--body);
+      color: var(--ink-2);
+      margin-bottom: 22px;
+    }
+    .p-stat {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: var(--mist);
+      border: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font: 600 15px/1.2 var(--body);
+      color: var(--ink-2);
+    }
+    .p-stat b {
+      font: 700 20px/1 var(--display);
+      color: var(--ink);
+    }
+
+    .prob-banner {
+      position: absolute;
+      left: 84px;
+      right: 84px;
+      bottom: 72px;
+      padding: 24px 32px;
+      border-radius: 22px;
+      background: var(--ink);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 24px 50px rgba(15, 23, 42, 0.16);
+    }
+    .prob-banner .pb-left {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .prob-banner .pb-badge {
+      padding: 8px 14px;
+      border-radius: 12px;
+      background: var(--blue);
+      font: 700 13px/1 var(--display);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .prob-banner p {
+      font: 500 19px/1.35 var(--body);
+      color: #E2E8F0;
+    }
+    .prob-banner p strong { color: #FFFFFF; }
+    .prob-banner .pb-num {
+      text-align: right;
+      flex: none;
+    }
+    .prob-banner .pb-num b {
+      display: block;
+      font: 700 36px/1 var(--display);
+      color: #60A5FA;
+    }
+    .prob-banner .pb-num small {
+      font: 500 13px/1.2 var(--body);
+      color: #94A3B8;
+    }
+
+    /* =========================================================================
+       SCENE 3: HOW NIEDERSACHSCANNER WORKS (ANIMATED PIPELINE)
+       ========================================================================= */
+    #pipeSvg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .pipe-col {
+      position: absolute;
+      top: 248px;
+      height: 492px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 46px rgba(15, 23, 42, 0.06);
+      display: flex;
+      flex-direction: column;
+    }
+    .pipe-step {
+      font: 700 12px/1 var(--body);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 10px;
+    }
+    .pipe-col h3 {
+      font: 700 24px/1.15 var(--display);
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+    .pipe-box {
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: var(--mist);
+      border: 1px solid var(--line);
+      margin-bottom: 12px;
+    }
+    .pipe-box small {
+      display: block;
+      font: 600 11px/1 var(--body);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .pipe-box b {
+      font: 600 15px/1.3 var(--body);
+      color: var(--ink);
+      display: block;
+    }
+    .pipe-url {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--blue-d);
+      background: var(--blue-l);
+      border: 1px solid var(--blue-m);
+      padding: 10px 12px;
+      border-radius: 10px;
+      word-break: break-all;
+      margin-bottom: 12px;
+    }
+    .scan-stage {
+      position: relative;
+      border-radius: 16px;
+      background: #0F172A;
+      color: #FFFFFF;
+      padding: 16px;
+      overflow: hidden;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    #scanLaser {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #38BDF8, #60A5FA, transparent);
+      box-shadow: 0 0 18px 4px rgba(56, 189, 248, 0.75);
+      opacity: 0;
+    }
+    .ext-chip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font: 500 13.5px/1 var(--body);
+    }
+    .ext-chip span { color: #94A3B8; }
+    .ext-chip b { color: #FFFFFF; font-family: var(--display); }
+    .ext-chip.bad { border-color: rgba(251, 113, 133, 0.5); background: rgba(225, 29, 72, 0.16); }
+    .ext-chip.bad b { color: #FDA4AF; }
+    .ext-chip.ok { border-color: rgba(52, 211, 153, 0.5); background: rgba(5, 150, 105, 0.16); }
+    .ext-chip.ok b { color: #6EE7B7; }
+
+    .meter-row {
+      margin-bottom: 14px;
+    }
+    .meter-lbl {
+      display: flex;
+      justify-content: space-between;
+      font: 600 13.5px/1.2 var(--body);
+      margin-bottom: 6px;
+    }
+    .meter-track {
+      height: 12px;
+      border-radius: 999px;
+      background: #E2E8F0;
+      overflow: hidden;
+      position: relative;
+    }
+    .meter-fill {
+      height: 100%;
+      border-radius: 999px;
+      width: 0%;
+    }
+    .verdict-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      flex: 1;
+      justify-content: space-between;
+    }
+    .donut-box {
+      position: relative;
+      width: 164px;
+      height: 164px;
+    }
+    .donut-txt {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .donut-txt b { font: 700 40px/1 var(--display); color: var(--ink); }
+    .donut-txt small { font: 700 11px/1 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--rose); margin-top: 4px; }
+
+    /* =========================================================================
+       SCENE 4: COMPLIANCE BY DESIGN ORBITAL HUB (KINETIC TRANSITION)
+       ========================================================================= */
+    #sc-cbd {
+      background: radial-gradient(960px 640px at 50% 50%, #FFFFFF 0%, #EFF6FF 52%, #E2E8F0 100%);
+    }
+    #cbdStatement {
+      position: absolute;
+      left: 0;
+      width: 1600px;
+      top: 340px;
+      text-align: center;
+      pointer-events: none;
+    }
+    #cbdLine1 {
+      font: 700 72px/1.12 var(--display);
+      letter-spacing: -0.04em;
+      color: var(--ink);
+    }
+    #cbdLine2 {
+      font: 700 72px/1.12 var(--display);
+      letter-spacing: -0.04em;
+      color: var(--blue);
+      margin-top: 8px;
+    }
+    #cbdOrbit {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+    }
+    #orbitCenter {
+      position: absolute;
+      left: 800px;
+      top: 486px;
+      width: 240px;
+      height: 240px;
+      margin: -120px 0 0 -120px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-shadow: 0 0 0 14px rgba(37, 99, 235, 0.12), 0 30px 70px rgba(15, 23, 42, 0.25);
+      z-index: 4;
+    }
+    #orbitCenter b { font: 700 21px/1.15 var(--display); margin-top: 10px; }
+    #orbitCenter small { font: 500 12px/1.3 var(--body); color: #93C5FD; margin-top: 4px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    .o-node {
+      position: absolute;
+      width: 340px;
+      padding: 18px 22px;
+      border-radius: 20px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 4;
+    }
+    .o-node i {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      flex: none;
+    }
+    .o-node b { display: block; font: 700 20px/1.15 var(--display); color: var(--ink); }
+    .o-node span { display: block; font: 500 13.5px/1.35 var(--body); color: var(--ink-2); margin-top: 3px; }
+
+    /* =========================================================================
+       SHARED LEGAL DEEP-DIVE SPLIT LAYOUT (SCENES 5–10)
+       ========================================================================= */
+    .law-left {
+      position: absolute;
+      left: 84px;
+      top: 138px;
+      width: 550px;
+    }
+    .law-left h2 {
+      font: 700 54px/1.04 var(--display);
+      letter-spacing: -0.035em;
+      color: var(--ink);
+      margin: 18px 0 16px;
+    }
+    .law-left .law-risk {
+      padding: 18px 20px;
+      border-radius: 16px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--rose);
+      margin-bottom: 20px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+    }
+    .law-left .law-risk small {
+      display: block;
+      font: 700 11.5px/1 var(--body);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--rose);
+      margin-bottom: 7px;
+    }
+    .law-left .law-risk p {
+      font: 500 16.5px/1.45 var(--body);
+      color: var(--ink-2);
+    }
+
+    .law-pts {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .law-pt {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+    }
+    .law-pt i {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      flex: none;
+      margin-top: 2px;
+    }
+    .law-pt b { display: block; font: 700 17px/1.25 var(--display); color: var(--ink); margin-bottom: 3px; }
+    .law-pt span { display: block; font: 400 15px/1.4 var(--body); color: var(--ink-2); }
+
+    /* Right Visual Interactive Demonstration Stage */
+    .law-stage {
+      position: absolute;
+      left: 680px;
+      top: 126px;
+      width: 836px;
+      height: 688px;
+      border-radius: 26px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: 0 28px 70px rgba(15, 23, 42, 0.09);
+      overflow: hidden;
+    }
+    .stage-bar {
+      height: 52px;
+      padding: 0 22px;
+      background: var(--mist);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stage-dots { display: flex; gap: 8px; }
+    .stage-dots b { width: 11px; height: 11px; border-radius: 50%; background: #CBD5E1; display: block; }
+    .stage-title {
+      font: 700 13px/1 var(--display);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-2);
+    }
+    .stage-body {
+      position: relative;
+      height: calc(100% - 52px);
+      padding: 30px 32px;
+    }
+
+    /* Specific visual components inside the 6 legal stages */
+    .pii-card {
+      padding: 20px 22px;
+      border-radius: 18px;
+      border: 1.5px solid var(--line);
+      background: var(--mist);
+    }
+    .pii-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #E2E8F0;
+      font: 500 16px/1.2 var(--body);
+    }
+    .pii-row:last-child { border-bottom: 0; }
+    .pii-row span { color: var(--muted); font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+    .pii-row code { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--ink); padding: 4px 10px; border-radius: 8px; background: #FFFFFF; border: 1px solid var(--line); }
+
+    .ram-bar-wrap {
+      margin-top: 22px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: #0F172A;
+      color: #FFFFFF;
+    }
+    .ram-track {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      overflow: hidden;
+      margin: 12px 0 10px;
+    }
+    #ramFill {
+      height: 100%;
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #38BDF8, #2563EB);
+    }
+
+    .ip-lane {
+      padding: 22px 24px;
+      border-radius: 20px;
+      border: 1.5px solid var(--line);
+      position: relative;
+      margin-bottom: 22px;
+    }
+    .ip-lane.blocked { background: var(--rose-l); border-color: var(--rose-b); }
+    .ip-lane.allowed { background: var(--emerald-l); border-color: var(--emerald-b); }
+
+    .fact-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      background: #FFFFFF;
+      border: 1px solid var(--emerald-b);
+      font: 700 14px/1 var(--display);
+      color: var(--ink);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.08);
+    }
+
+    .portal-chip {
+      padding: 11px 16px;
+      border-radius: 12px;
+      background: #FFFFFF;
+      border: 1.5px solid var(--line);
+      font: 700 14.5px/1 var(--display);
+      color: var(--ink);
+      text-align: center;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+    }
+
+    .id-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 22px;
+    }
+    .id-box {
+      padding: 20px;
+      border-radius: 18px;
+      border: 1.5px solid var(--line);
+      background: var(--mist);
+    }
+
+    .glass-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .g-card {
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: var(--mist);
+      border: 1px solid var(--line);
+    }
+    .g-card small { font: 700 11px/1 var(--body); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .g-card b { display: block; font: 700 17px/1.25 var(--display); color: var(--ink); margin: 5px 0 4px; }
+    .g-card span { font: 500 13.5px/1.35 var(--body); color: var(--ink-2); }
+
+    .failsafe-box {
+      margin-top: 20px;
+      padding: 18px 22px;
+      border-radius: 18px;
+      background: var(--amber-l);
+      border: 1.5px solid var(--amber-b);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .kaution-meter {
+      padding: 22px 24px;
+      border-radius: 20px;
+      background: var(--mist);
+      border: 1px solid var(--line);
+    }
+    .k-bar-outer {
+      position: relative;
+      height: 28px;
+      border-radius: 999px;
+      background: #E2E8F0;
+      margin: 28px 0 18px;
+      overflow: visible;
+    }
+    #kBarFill {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #059669 0%, #D97706 68%, #E11D48 100%);
+    }
+    .k-cap-line {
+      position: absolute;
+      left: 69%;
+      top: -12px;
+      bottom: -12px;
+      width: 3px;
+      background: var(--ink);
+      border-radius: 2px;
+    }
+    .k-cap-lbl {
+      position: absolute;
+      left: 69%;
+      top: -36px;
+      transform: translateX(-50%);
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #FFFFFF;
+      font: 700 12px/1 var(--display);
+      white-space: nowrap;
+    }
+
+    .clause-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .clause-pill {
+      padding: 16px;
+      border-radius: 16px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+    }
+    .clause-pill b { display: block; font: 700 15px/1.2 var(--display); color: var(--ink); margin-bottom: 4px; }
+    .clause-pill span { font: 500 13px/1.35 var(--body); color: var(--ink-2); }
+
+    .reframe-bad {
+      padding: 20px 24px;
+      border-radius: 18px;
+      background: var(--rose-l);
+      border: 1.5px solid var(--rose-b);
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .strike-bar {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      top: 56%;
+      height: 4px;
+      background: var(--rose);
+      border-radius: 2px;
+      transform-origin: left center;
+      transform: scaleX(0);
+    }
+    .reframe-good {
+      padding: 22px 24px;
+      border-radius: 18px;
+      background: var(--emerald-l);
+      border: 1.5px solid var(--emerald-b);
+      margin-bottom: 22px;
+    }
+    .redress-flow {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      padding: 20px;
+      border-radius: 20px;
+      background: #0F172A;
+      color: #FFFFFF;
+    }
+    .rf-step {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .rf-step small { display: block; font: 700 11px/1 var(--body); color: #60A5FA; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+    .rf-step b { display: block; font: 700 16px/1.25 var(--display); color: #FFFFFF; margin-bottom: 4px; }
+    .rf-step span { font: 400 13px/1.35 var(--body); color: #CBD5E1; }
+
+    /* =========================================================================
+       SCENE 11: CLOSING / EXECUTIVE SUMMARY
+       ========================================================================= */
+    #sc-end {
+      background: radial-gradient(1100px 760px at 50% 35%, #FFFFFF 0%, #EFF6FF 55%, #E2E8F0 100%);
+    }
+    #endTop {
+      position: absolute;
+      left: 84px;
+      right: 84px;
+      top: 96px;
+      text-align: center;
+    }
+    #endLogo {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 24px;
+      filter: drop-shadow(0 16px 32px rgba(37, 99, 235, 0.28));
+    }
+    #endTop h1 {
+      font: 700 68px/1.06 var(--display);
+      letter-spacing: -0.04em;
+      color: var(--ink);
+    }
+    #endTop h1 em { font-style: normal; color: var(--blue); }
+    #endTop p {
+      font: 500 22px/1.45 var(--body);
+      color: var(--ink-2);
+      margin-top: 14px;
+    }
+
+    #endPillars {
+      position: absolute;
+      left: 84px;
+      right: 84px;
+      top: 432px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+    }
+    .ep-card {
+      padding: 22px 18px;
+      border-radius: 20px;
+      background: #FFFFFF;
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.06);
+      text-align: center;
+    }
+    .ep-card i {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      margin: 0 auto 14px;
+      display: grid;
+      place-items: center;
+    }
+    .ep-card b { display: block; font: 700 17px/1.2 var(--display); color: var(--ink); margin-bottom: 6px; }
+    .ep-card span { display: block; font: 500 13.5px/1.35 var(--body); color: var(--ink-2); }
+
+    #endFoot {
+      position: absolute;
+      left: 84px;
+      right: 84px;
+      bottom: 78px;
+      padding: 24px 36px;
+      border-radius: 22px;
+      background: var(--ink);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+    }
+    #endFoot h2 { font: 700 34px/1 var(--display); letter-spacing: -0.025em; }
+    #endFoot span { font: 500 17px/1.3 var(--body); color: #94A3B8; }
+
+    /* =========================================================================
+       FLOATING GLASSMORPHIC HUD (WORKSTER STYLE)
+       ========================================================================= */
+    #hud {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.84);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.25);
+      z-index: 100;
+      color: #F1F5F9;
+      font: 500 13px/1 var(--body);
+      transition: opacity 0.3s ease;
+    }
+    #hud.idle { opacity: 0; pointer-events: none; }
+    #hud button {
+      all: unset;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      color: #FFFFFF;
+      transition: background 0.15s;
+    }
+    #hud button:hover { background: rgba(255, 255, 255, 0.14); }
+    #bar {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      padding: 0 4px;
+    }
+    #bar i {
+      display: block;
+      height: 6px;
+      width: 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.24);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    #bar i:hover { background: rgba(147, 197, 253, 0.85); }
+    #bar i.done { background: #60A5FA; }
+    #bar i.cur { background: #FFFFFF; width: 26px; }
+    #bar i.gap { margin-left: 8px; }
+    #hudLabel {
+      min-width: 230px;
+      padding: 0 6px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    #help {
+      position: fixed;
+      left: 20px;
+      bottom: 24px;
+      font: 500 12px/1 var(--body);
+      color: rgba(71, 85, 105, 0.85);
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(8px);
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      z-index: 100;
+      transition: opacity 0.3s ease;
+    }
+    #help.idle { opacity: 0; pointer-events: none; }
+    body.nohud #hud, body.nohud #help { display: none; }
+
+    @media (max-width: 900px) {
+      #help { display: none; }
+      #hudLabel { min-width: 150px; font-size: 11.5px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================================
+       1600x900 INTERACTIVE PRESENTATION STAGE
+       ========================================================================= -->
+  <div id="canvas">
+
+    <!-- =======================================================================
+         SCENE 1: INTRO & BRAND REVEAL
+         ======================================================================= -->
+    <section id="sc-intro" class="scene">
+      <div class="grid-bg"></div>
+      <div id="introGlow"></div>
+      <div id="introTile">
+        <svg viewBox="0 0 220 220" width="220" height="220">
+          <defs>
+            <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#3B82F6" />
+              <stop offset="100%" stop-color="#1D4ED8" />
+            </linearGradient>
+            <linearGradient id="sheenGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#fff" stop-opacity="0" />
+              <stop offset="50%" stop-color="#fff" stop-opacity="0.55" />
+              <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+            </linearGradient>
+            <clipPath id="tileClip"><rect x="10" y="10" width="200" height="200" rx="48" /></clipPath>
+          </defs>
+          <!-- Radar pulse circles -->
+          <circle cx="110" cy="110" r="88" fill="none" stroke="#2563EB" stroke-width="2" class="radar-pulse" opacity="0.35" />
+          <!-- Rounded Brand Tile -->
+          <g clip-path="url(#tileClip)">
+            <rect x="10" y="10" width="200" height="200" rx="48" fill="url(#brandGrad)" />
+            <rect id="introSheen" x="-120" y="-20" width="80" height="260" fill="url(#sheenGrad)" transform="rotate(20 110 110)" />
+          </g>
+          <!-- Shield + Checkmark Vector -->
+          <path id="shieldOutline" d="M110 46 L160 66 V108 C160 142 138 166 110 178 C82 166 60 142 60 108 V66 Z"
+                fill="rgba(255,255,255,0.12)" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="round" />
+          <path id="shieldTick" d="M88 112 L104 128 L136 92"
+                fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <div id="introWord">Niedersach<span>Scanner</span></div>
+      <div id="introSub">Student Housing Verification &amp; Legal Risk Shield for Osnabrück</div>
+      <div id="introMeta">
+        <span><b>Course</b> Compliance by Design</span>
+        <span><b>Region</b> Osnabrück · Lower Saxony</span>
+        <span><b>Scope</b> 6 Legal Regimes in Code</span>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         SCENE 2: THE PROBLEM IN OSNABRÜCK
+         ======================================================================= -->
+    <section id="sc-problem" class="scene">
+      <div class="grid-bg"></div>
+      <div class="chap"><i></i>The Problem <span class="pill-num">Osnabrück</span></div>
+      <div class="brand-corner" data-brand></div>
+      <h1 class="s-title">Open housing portals leave <em>students exposed.</em></h1>
+      <p class="s-sub">Each semester, acute room shortages push local and international students into unverified listings where three recurring traps thrive.</p>
+
+      <div class="prob-grid">
+        <div class="p-card c-rose" id="pc0">
+          <div class="p-ic" style="background:var(--rose-l);color:var(--rose)">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/></svg>
+          </div>
+          <h3>Bait Studio Scams</h3>
+          <p>Too-good-to-be-true flats (e.g. €260 in Katharinenviertel) using stolen Airbnb photos to demand upfront <em>Kaution</em> before any viewing.</p>
+          <div class="p-stat"><span>Avg. bait discount</span><b style="color:var(--rose)">−46% vs. Avg</b></div>
+        </div>
+
+        <div class="p-card c-purple" id="pc1">
+          <div class="p-ic" style="background:var(--purple-l);color:var(--purple)">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 10h.01M15 10h.01M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z"/></svg>
+          </div>
+          <h3>Expired Ghost Ads</h3>
+          <p>Already-rented apartments reposted on social channels to harvest student passport scans, bank statements, and SCHUFA files.</p>
+          <div class="p-stat"><span>Primary target</span><b style="color:var(--purple)">ID &amp; SCHUFA</b></div>
+        </div>
+
+        <div class="p-card c-amber" id="pc2">
+          <div class="p-ic" style="background:var(--amber-l);color:var(--amber)">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 15l2 2 4-4"/></svg>
+          </div>
+          <h3>Unlawful Rental Terms</h3>
+          <p>Deposits above 3× cold rent (§ 551 BGB), inflated cash furniture buyouts (<em>Ablöse</em>), unapproved sublets, or banned city registration (<em>Anmeldung</em>).</p>
+          <div class="p-stat"><span>Statutory ceiling</span><b style="color:var(--amber)">Max 3× Cold Rent</b></div>
+        </div>
+      </div>
+
+      <div class="prob-banner" id="probBanner">
+        <div class="pb-left">
+          <span class="pb-badge">The Market Gap</span>
+          <p>Managed portals charge high fees, while general antivirus tools cannot read <strong>Kaution caps, Mietspiegel benchmarks, or tenancy law.</strong></p>
+        </div>
+        <div class="pb-num">
+          <b id="probCounter">€0</b>
+          <small>Typical deposit lost in one advance-fee scam</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         SCENE 3: HOW NIEDERSACHSCANNER WORKS (ANIMATED ENGINE)
+         ======================================================================= -->
+    <section id="sc-how" class="scene">
+      <div class="grid-bg"></div>
+      <div class="chap"><i></i>The Platform <span class="pill-num">4-Stage Engine</span></div>
+      <div class="brand-corner" data-brand></div>
+      <h1 class="s-title">Paste any link or <em>Ctrl+V screenshot.</em> Instant diagnosis.</h1>
+      <p class="s-sub">A portal-agnostic verifier tailored to Osnabrück that turns opaque housing ads into clear, verifiable signals in seconds.</p>
+
+      <!-- Connecting Animated Flow Arrows -->
+      <svg id="pipeSvg" viewBox="0 0 1600 900" width="1600" height="900">
+        <path id="pFlow1" d="M402 490 H448" stroke="#CBD5E1" stroke-width="3" fill="none" />
+        <path id="pFlow1A" class="flow-line" d="M402 490 H448" stroke="#2563EB" stroke-width="3.5" stroke-dasharray="10 26" opacity="0" />
+        <path id="pFlow2" d="M778 490 H824" stroke="#CBD5E1" stroke-width="3" fill="none" />
+        <path id="pFlow2A" class="flow-line" d="M778 490 H824" stroke="#2563EB" stroke-width="3.5" stroke-dasharray="10 26" opacity="0" />
+        <path id="pFlow3" d="M1154 490 H1200" stroke="#CBD5E1" stroke-width="3" fill="none" />
+        <path id="pFlow3A" class="flow-line" d="M1154 490 H1200" stroke="#2563EB" stroke-width="3.5" stroke-dasharray="10 26" opacity="0" />
+      </svg>
+
+      <!-- Column 1: Dual Input -->
+      <div class="pipe-col" id="col0" style="left:84px;width:318px;">
+        <div class="pipe-step">Step 01 · Dual Input</div>
+        <h3>URL or Print</h3>
+        <div class="pipe-url">wg-osnabrueck-deals.net/<br>30sqm-katharinenviertel</div>
+        <div class="pipe-box">
+          <small>Anti-Bot Fallback</small>
+          <b>Press Ctrl+V to attach any screenshot</b>
+        </div>
+        <div class="pipe-box" style="margin-top:auto;background:var(--blue-l);border-color:var(--blue-m)">
+          <small style="color:var(--blue-d)">Zero Lock-In</small>
+          <b style="color:var(--blue-d)">Works on WG-Gesucht, Kleinanzeigen, ImmoScout24 &amp; social chats</b>
+        </div>
+      </div>
+
+      <!-- Column 2: Ephemeral Laser Extraction -->
+      <div class="pipe-col" id="col1" style="left:450px;width:328px;">
+        <div class="pipe-step">Step 02 · Extraction</div>
+        <h3>Ephemeral Parse</h3>
+        <div class="scan-stage">
+          <div id="scanLaser"></div>
+          <div class="ext-chip" id="ex0"><span>Warm Rent</span><b>€260 / mo</b></div>
+          <div class="ext-chip bad" id="ex1"><span>Kaution</span><b>€900 (4.3×)</b></div>
+          <div class="ext-chip" id="ex2"><span>District / Size</span><b>Katharinen · 30 m²</b></div>
+          <div class="ext-chip ok" id="ex3"><span>Account Badge</span><b>Private ≠ Pro</b></div>
+          <div style="font:600 11.5px/1.3 var(--mono);color:#60A5FA;text-align:center;padding-top:4px;">RAM-ONLY · ZERO PERMANENT STORAGE</div>
+        </div>
+      </div>
+
+      <!-- Column 3: Rule & Benchmark Verification -->
+      <div class="pipe-col" id="col2" style="left:826px;width:328px;">
+        <div class="pipe-step">Step 03 · Verification</div>
+        <h3>4 Legal &amp; Market Checks</h3>
+        <div class="meter-row">
+          <div class="meter-lbl"><span>Osnabrück Mietspiegel</span><span style="color:var(--rose)">−46% Bait</span></div>
+          <div class="meter-track"><div class="meter-fill" id="mRent" style="background:var(--rose)"></div></div>
+        </div>
+        <div class="meter-row">
+          <div class="meter-lbl"><span>§ 551 BGB Kaution Cap</span><span style="color:var(--rose)">€900 &gt; €630</span></div>
+          <div class="meter-track"><div class="meter-fill" id="mKaut" style="background:var(--amber)"></div></div>
+        </div>
+        <div class="meter-row">
+          <div class="meter-lbl"><span>Photo &amp; Ghost Check</span><span style="color:var(--purple)">Airbnb Match</span></div>
+          <div class="meter-track"><div class="meter-fill" id="mPhoto" style="background:var(--purple)"></div></div>
+        </div>
+        <div class="pipe-box" style="margin-top:auto">
+          <small>Human-in-the-Loop</small>
+          <b>Every extracted figure is click-to-edit live</b>
+        </div>
+      </div>
+
+      <!-- Column 4: Plain-English Verdict -->
+      <div class="pipe-col" id="col3" style="left:1202px;width:314px;">
+        <div class="pipe-step">Step 04 · Output</div>
+        <h3>Explainable Verdict</h3>
+        <div class="verdict-wrap">
+          <div class="donut-box">
+            <svg viewBox="0 0 160 160" width="164" height="164">
+              <circle cx="80" cy="80" r="64" fill="none" stroke="#E2E8F0" stroke-width="14" />
+              <circle id="riskArc" cx="80" cy="80" r="64" fill="none" stroke="#E11D48" stroke-width="14"
+                      stroke-linecap="round" transform="rotate(-90 80 80)"
+                      stroke-dasharray="402.1" stroke-dashoffset="402.1" />
+            </svg>
+            <div class="donut-txt"><b id="riskNum">0%</b><small>Risk Score</small></div>
+          </div>
+          <span class="tag tag-rose" id="verdictBadge">High Scam Indicators</span>
+          <div class="pipe-box" style="width:100%;margin:0;text-align:left;">
+            <small>Actionable Clarity</small>
+            <b>4 plain-English reason cards + direct link to inspect original ad</b>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         SCENE 4: COMPLIANCE BY DESIGN ARCHITECTURE HUB
+         ======================================================================= -->
+    <section id="sc-cbd" class="scene">
+      <div class="grid-bg"></div>
+      <div class="chap"><i></i>Core Philosophy <span class="pill-num">Compliance by Design</span></div>
+      <div class="brand-corner" data-brand></div>
+
+      <!-- Opening Kinetic Statement -->
+      <div id="cbdStatement">
+        <div id="cbdLine1">Compliance is not a legal footer.</div>
+        <div id="cbdLine2">It is the software architecture.</div>
+      </div>
+
+      <!-- Orbital 6-Domain Architecture Diagram -->
+      <div id="cbdOrbit">
+        <h1 class="s-title" style="top:92px;">Six Legal Regimes <em>Engineered into Code</em></h1>
+        <svg id="orbitSvg" viewBox="0 0 1600 900" width="1600" height="900" style="position:absolute;inset:0;pointer-events:none">
+          <path class="orb-l" d="M460 286 L690 436" stroke="#BFDBFE" stroke-width="3" fill="none" />
+          <path class="orb-l" d="M460 486 L680 486" stroke="#DDD6FE" stroke-width="3" fill="none" />
+          <path class="orb-l" d="M460 686 L690 536" stroke="#FDE68A" stroke-width="3" fill="none" />
+          <path class="orb-l" d="M1140 286 L910 436" stroke="#A7F3D0" stroke-width="3" fill="none" />
+          <path class="orb-l" d="M1140 486 L920 486" stroke="#CBD5E1" stroke-width="3" fill="none" />
+          <path class="orb-l" d="M1140 686 L910 536" stroke="#FECDD3" stroke-width="3" fill="none" />
+
+          <path class="flow-line orb-f" d="M460 286 L690 436" stroke="#2563EB" stroke-width="3" stroke-dasharray="10 26" />
+          <path class="flow-line orb-f" d="M460 486 L680 486" stroke="#7C3AED" stroke-width="3" stroke-dasharray="10 26" />
+          <path class="flow-line orb-f" d="M460 686 L690 536" stroke="#D97706" stroke-width="3" stroke-dasharray="10 26" />
+          <path class="flow-line orb-f" d="M1140 286 L910 436" stroke="#059669" stroke-width="3" stroke-dasharray="10 26" />
+          <path class="flow-line orb-f" d="M1140 486 L920 486" stroke="#0F172A" stroke-width="3" stroke-dasharray="10 26" />
+          <path class="flow-line orb-f" d="M1140 686 L910 536" stroke="#E11D48" stroke-width="3" stroke-dasharray="10 26" />
+        </svg>
+
+        <div id="orbitCenter">
+          <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+          <b>NiedersachScanner</b>
+          <small>Compliance Core</small>
+        </div>
+
+        <!-- Left 3 Nodes -->
+        <div class="o-node" id="on0" style="left:120px;top:240px;">
+          <i style="background:var(--blue-l);color:var(--blue)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></i>
+          <div><b>1. Data Law</b><span>GDPR Art. 5, 6, 16, 17 &amp; 25</span></div>
+        </div>
+        <div class="o-node" id="on1" style="left:120px;top:440px;">
+          <i style="background:var(--purple-l);color:var(--purple)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M14.8 9.2a4 4 0 1 0 0 5.6"/></svg></i>
+          <div><b>2. IP Law</b><span>UrhG, Database Rights, MarkenG</span></div>
+        </div>
+        <div class="o-node" id="on2" style="left:120px;top:640px;">
+          <i style="background:var(--amber-l);color:var(--amber)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v18M5 7h14M7 7l-3 7h6l-3-7zM17 7l-3 7h6l-3-7z"/></svg></i>
+          <div><b>3. Competition Law</b><span>UWG §§ 3, 4, 5 Fairness</span></div>
+        </div>
+
+        <!-- Right 3 Nodes -->
+        <div class="o-node" id="on3" style="left:1140px;top:240px;">
+          <i style="background:var(--emerald-l);color:var(--emerald)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></i>
+          <div><b>4. Product Safety Law</b><span>EU AI Act Art. 13 &amp; GPSR</span></div>
+        </div>
+        <div class="o-node" id="on4" style="left:1140px;top:440px;">
+          <i style="background:#E2E8F0;color:var(--ink)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></i>
+          <div><b>5. Contract Law</b><span>BGB §§ 551, 540, 327 ff.</span></div>
+        </div>
+        <div class="o-node" id="on5" style="left:1140px;top:640px;">
+          <i style="background:var(--rose-l);color:var(--rose)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></i>
+          <div><b>6. Liability Law</b><span>BGB §§ 823, 824 · StGB § 186</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         SCENE 5: 01 · DATA LAW (GDPR)
+         ======================================================================= -->
+    <section id="sc-data" class="scene">
+      <div class="grid-bg"></div>
+      <div class="chap"><i></i>Legal Deep-Dive <span class="pill-num">01 / 06</span></div>
+      <div class="brand-corner" data-brand></div>
+
+      <div class="law-left">
+        <span class="tag tag-blue">GDPR / DSGVO · Art. 5, 6, 16, 17, 25</span>
+        <h2>Data Law</h2>
+        <div class="law-risk">
+          <small>Legal Applicability &amp; Risk</small>
+          <p>Student housing ads contain personal data of private individuals (names, phone numbers, WG profiles). Storing screenshots or publishing "scammer blacklists" violates proportionality.</p>
+        </div>
+        <div class="law-pts">
+          <div class="law-pt">
+            <i style="background:var(--blue-l);color:var(--blue)"><b>25</b></i>
+            <div><b>Privacy by Default (Art. 25)</b><span>Private advertiser identities are masked automatically in the UI; unmasking requires explicit action.</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:var(--blue-l);color:var(--blue)"><b>05</b></i>
+            <div><b>Data Minimization &amp; Ephemeral RAM (Art. 5)</b><span>URLs and screenshots are processed in transient memory only—zero persistent landlord dossiers.</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:var(--blue-l);color:var(--blue)"><b>16</b></i>
+            <div><b>Lawful Basis &amp; Redress (Art. 6(1)(f), 16, 17)</b><span>Narrow legitimate interest (consumer fraud prevention) paired with instant rectification &amp; erasure.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="law-stage">
+        <div class="stage-bar">
+          <div class="stage-dots"><b></b><b></b><b></b></div>
+          <div class="stage-title">Live Simulation · Ephemeral Privacy Filter</div>
+          <span class="tag tag-blue" style="height:26px;font-size:11.5px;">GDPR Art. 25 Active</span>
+        </div>
+        <div class="stage-body">
+          <div class="pii-card" id="piiCard">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <b style="font:700 18px/1 var(--display);">Extracted Listing Contact Payload</b>
+              <span class="tag tag-emerald" id="piiStatus" style="height:26px;font-size:11.5px;">Raw Input</span>
+            </div>
+            <div class="pii-row"><span>Subletter Name</span><code id="piiName">Lukas Schmidt</code></div>
+            <div class="pii-row"><span>Phone Number</span><code id="piiPhone">+49 176 4429 1834</code></div>
+            <div class="pii-row"><span>Screenshot Blob</span><code id="piiBlob">wg_print_482KB.png</code></div>
+            <div class="pii-row"><span>Public Blacklist Entry</span><code id="piiBlack" style="color:var(--emerald);border-color:var(--emerald-b);background:var(--emerald-l)">NEVER CREATED</code></div>
+          </div>
+
+          <div class="ram-bar-wrap" id="ramBox">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <b style="font:700 17px/1 var(--display);">Ephemeral RAM Buffer Auto-Purge</b>
+              <code id="ramVal" style="font-family:var(--mono);color:#38BDF8;font-size:15px;">482 KB in RAM</code>
+            </div>
+            <div class="ram-track"><div id="ramFill"></div></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#94A3B8;">
+              <span>Session-scoped analysis only</span>
+              <span id="ramDone" style="color:#6EE7B7;font-weight:700;opacity:0;">✓ 0 KB retained after verdict</span>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;">
+            <div class="pipe-box" id="gdprB1" style="margin:0;background:var(--blue-l);border-color:var(--blue-m);">
+              <small style="color:var(--blue-d)">Art. 6(1)(f) Balancing Test</small>
+              <b>Protects vulnerable students without profiling landlords</b>
+            </div>
+            <div class="pipe-box" id="gdprB2" style="margin:0;background:var(--emerald-l);border-color:var(--emerald-b);">
+              <small style="color:var(--emerald)">Art. 16 &amp; 17 Built-in</small>
+              <b>One-click Rectification &amp; Erasure Modal on every report</b>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         SCENE 6: 02 · IP LAW (COPYRIGHT, DATABASE RIGHTS, TRADEMARKS)
+         ======================================================================= -->
+    <section id="sc-ip" class="scene">
+      <div class="grid-bg"></div>
+      <div class="chap"><i></i>Legal Deep-Dive <span class="pill-num">02 / 06</span></div>
+      <div class="brand-corner" data-brand></div>
+
+      <div class="law-left">
+        <span class="tag tag-purple">UrhG §§ 2, 44a, 44b, 72, 87a ff. · MarkenG</span>
+        <h2>IP Law</h2>
+        <div class="law-risk">
+          <small>Legal Applicability &amp; Risk</small>
+          <p>Listing descriptions and photos are protected by copyright (§§ 2, 72 UrhG), while housing portals hold <em>sui generis</em> database rights (§§ 87a–87b UrhG) against systematic scraping.</p>
+        </div>
+        <div class="law-pts">
+          <div class="law-pt">
+            <i style="background:var(--purple-l);color:var(--purple)"><b>01</b></i>
+            <div><b>No Bulk Crawling or Shadow Database</b><span>Strictly user-initiated, single-URL checks avoid any substantial extraction of a portal’s database.</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:var(--purple-l);color:var(--purple)"><b>02</b></i>
+            <div><b>Transient Factual Analysis (§§ 44a, 44b UrhG)</b><span>Reads non-copyrightable raw facts (€ rent, m², Kaution) ephemerally without re-hosting galleries.</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:var(--purple-l);color:var(--purple)"><b>03</b></i>
+            <div><b>Referential Trademarks &amp; Deep-Linking</b><span>Portal names identify source context descriptively (§ 23 MarkenG); links drive traffic back to the portal.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="law-stage">
+        <div class="stage-bar">
+          <div class="stage-dots"><b></b><b></b><b></b></div>
+          <div class="stage-title">Architecture Boundary · Copyright &amp; Database Guard</div>
+          <span class="tag tag-purple" style="height:26px;font-size:11.5px;">Single-Item Only</span>
+        </div>
+        <div class="stage-body">
+          <!-- Blocked Bulk Scraping Lane -->
+          <div class="ip-lane blocked" id="ipBlocked">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <b style="font:700 19px/1 var(--display);color:var(--rose);">✗ Prohibited: Automated Bulk Scraper / Mirror DB</b>
+              <span class="tag tag-rose" style="height:26px;font-size:11px;">Blocked by Design</span>
+            </div>
+            <p style="font:500 14.5px/1.45 var(--body);color:var(--ink-2);">
+              Indexing thousands of ads or re-hosting photos infringes <strong>§ 87b UrhG</strong> (database investment) and <strong>§ 72 UrhG</strong> (photo rights). NiedersachScanner contains zero crawler bots or ad archives.
+            </p>
+          </div>
+
+          <!-- Allowed Single-Item Factual Extraction Lane -->
+          <div class="ip-lane allowed" id="ipAllowed">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <b style="font:700 19px/1 var(--display);color:var(--emerald);">✓ Implemented: User-Triggered Single-Ad Fact Parser</b>
+              <span class="tag tag-emerald" style="height:26px;font-size:11px;">§§ 44a / 44b UrhG</span>
+            </div>
+            <p style="font:500 14.5px/1.45 var(--body);color:var(--ink-2);margin-bottom:16px;">
+              Processes one listing on demand (or user screenshot), extracts uncopyrightable numerical parameters only, and discards raw creative media:
+            </p>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;" id="factPills">
+              <span class="fact-pill">Rent: €385</span>
+              <span class="fact-pill">Kaution: €500</span>
+              <span class="fact-pill">Size: 18 m²</span>
+              <span class="fact-pill">District: Innenstadt</span>
+              <span class="fact-pill">Badge: Verified Private</span>
+            </div>
+          </div>
+
+          <!-- Deep-Linking & Descriptive Trademark Strip -->
+          <div id="ipDeep" style="padding:18px 22px;border-radius:18px;background:var(--ink);color:#FFFFFF;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <small style="display:block;font:700 11px/1 var(--body);letter-spacing:0.12em;text-transform:uppercase;color:#A78BFA;margin-bottom:6px;">Traffic &amp; Trademark Compliance (§ 23 MarkenG)</small>
+              <b style="font:600 16px/1.3 var(--body);">“Open Original Listing ↗” redirects students straight back to the source portal</b>
+            </div>
+            <span style="padding:10px 16px;border-radius:12px;background:var(--purple);font:700 13px/1 var(--display);white-space:nowrap;">Deep-Link ↗</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         SCENE 7: 03 · COMPETITION LAW (UWG)
+         ======================================================================= -->
+    <section id="sc-comp" class="scene">
+      <div class="grid-bg"></div>
+      <div class="chap"><i></i>Legal Deep-Dive <span class="pill-num">03 / 06</span></div>
+      <div class="brand-corner" data-brand></div>
+
+      <div class="law-left">
+        <span class="tag tag-amber">UWG §§ 3, 4 Nos. 1, 2 &amp; 4, § 5</span>
+        <h2>Competition Law</h2>
+        <div class="law-risk">
+          <small>Legal Applicability &amp; Risk</small>
+          <p>Arbitrarily penalizing specific portals or mislabeling commercial brokers risks unlawful disparagement (§ 4 Nos. 1–2 UWG), obstruction (§ 4 No. 4), or misleading commercial claims (§ 5 UWG).</p>
+        </div>
+        <div class="law-pts">
+          <div class="law-pt">
+            <i style="background:var(--amber-l);color:var(--amber)"><b>=</b></i>
+            <div><b>Portal-Agnostic Neutrality</b><span>Identical, transparent scoring rules apply across WG-Gesucht, Kleinanzeigen, ImmoScout24, and independent sites.</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:var(--amber-l);color:var(--amber)"><b>§5</b></i>
+            <div><b>Objective External Benchmarks</b><span>Price anomalies are grounded solely in public Osnabrück <em>Mietspiegel</em> ranges and statutory German tenancy caps.</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:var(--amber-l);color:var(--amber)"><b>ID</b></i>
+            <div><b>Accurate Account Attribution</b><span>Strictly separates <em>Private User (Verified ID)</em> from <em>Commercial / Pro</em> brokers to prevent misleading consumer signals.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="law-stage">
+        <div class="stage-bar">
+          <div class="stage-dots"><b></b><b></b><b></b></div>
+          <div class="stage-title">Fairness Engine · Equal Rules &amp; Accurate Attribution</div>
+          <span class="tag tag-amber" style="height:26px;font-size:11.5px;">UWG Neutral</span>
+        </div>
+        <div class="stage-body">
+          <!-- 4 Equal Portals flowing into one Neutral Engine -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;" id="portalRow">
+            <div class="portal-chip">WG-Gesucht</div>
+            <div class="portal-chip">Kleinanzeigen</div>
+            <div class="portal-chip">ImmoScout24</div>
+            <div class="portal-chip">External URLs</div>
+          </div>
+
+          <svg viewBox="0 0 770 96" width="770" height="96" style="margin:6px 0;">
+            <path d="M90 6 V44 H385 V88 M285 6 V44 H385 M485 6 V44 H385 M680 6 V44 H385" stroke="#CBD5E1" stroke-width="2.5" fill="none" />
+            <path id="uwgFlow" class="flow-line" d="M90 6 V44 H385 V88 M285 6 V44 H385 M485 6 V44 H385 M680 6 V44 H385" stroke="#D97706" stroke-width="3" stroke-dasharray="10 26" opacity="0" />
+          </svg>
+
+          <div id="uwgHub" style="padding:18px 24px;border-radius:18px;background:var(--ink);color:#FFFFFF;text-align:center;">
+            <small style="display:block;font:700 11px/1 var(--body);letter-spacing:0.14em;text-transform:uppercase;color:#FCD34D;margin-bottom:6px;">Single Objective Benchmark Engine</small>
+            <b style="font:700 20px/1.2 var(--display);">Zero Paid Whitelisting · Zero Platform Bias · Public Mietspiegel Math</b>
+          </div>
+
+          <!-- Verified Private vs Commercial/Pro Accuracy Showcase -->
+          <div class="id-compare">
+            <div class="id-box" id="idPriv" style="background:var(--emerald-l);border-color:var(--emerald-b);">
+              <span class="tag tag-emerald" style="height:26px;font-size:11px;margin-bottom:10px;">✓ Verified Private</span>
+              <b style="display:block;font:700 18px/1.2 var(--display);color:var(--ink);margin-bottom:6px;">Private User (Verified ID)</b>
+              <span style="font:500 14px/1.4 var(--body);color:var(--ink-2);">Student/flatmate with “Identität verifiziert” badge — explicitly marked <strong>NOT a Pro broker</strong>.</span>
+            </div>
+            <div class="id-box" id="idPro" style="background:var(--blue-l);border-color:var(--blue-m);">
+              <span class="tag tag-blue" style="height:26px;font-size:11px;margin-bottom:10px;">Commercial / Pro</span>
+              <b style="display:block;font:700 18px/1.2 var(--display);color:var(--ink);margin-bottom:6px;">Commercial / Pro Landlord</b>
+              <span style="font:500 14px/1.4 var(--body);color:var(--ink-2);">Applied strictly when labeled “PRO / Gewerblich” — avoiding § 5 UWG misrepresentation.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         SCENE 8: 04 · PRODUCT SAFETY LAW (EU AI ACT & GPSR)
+         ======================================================================= -->
+    <section id="sc-safety" class="scene">
+      <div class="grid-bg"></div>
+      <div class="chap"><i></i>Legal Deep-Dive <span class="pill-num">04 / 06</span></div>
+      <div class="brand-corner" data-brand></div>
+
+      <div class="law-left">
+        <span class="tag tag-emerald">EU AI Act Art. 13 · GPSR (EU) 2023/988</span>
+        <h2>Product Safety Law</h2>
+        <div class="law-risk">
+          <small>Legal Applicability &amp; Risk</small>
+          <p>Verification software causes real financial harm if an opaque "black-box" AI falsely certifies a scam as "100% Safe" or hallucinates missing deposit numbers when blocked by captchas.</p>
+        </div>
+        <div class="law-pts">
+          <div class="law-pt">
+            <i style="background:var(--emerald-l);color:var(--emerald)"><b>13</b></i>
+            <div><b>Explainable Glass-Box AI (Art. 13 AI Act)</b><span>Every score is decomposed into 4 plain-English reason cards displaying the exact triggers behind the result.</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:var(--emerald-l);color:var(--emerald)"><b>FS</b></i>
+            <div><b>Fail-Safe Extraction (Zero Hallucinations)</b><span>Missing or cropped Kaution figures show <em>“Not Stated (Add)”</em> instead of silently guessing a value.</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:var(--emerald-l);color:var(--emerald)"><b>HL</b></i>
+            <div><b>Human-in-the-Loop &amp; Safety Warnings</b><span>Click-to-edit metric pills let students verify numbers live, paired with mandatory upfront-payment warnings.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="law-stage">
+        <div class="stage-bar">
+          <div class="stage-dots"><b></b><b></b><b></b></div>
+          <div class="stage-title">Transparency &amp; Fail-Safe Design · Glass-Box AI</div>
+          <span class="tag tag-emerald" style="height:26px;font-size:11.5px;">AI Act Art. 13</span>
+        </div>
+        <div class="stage-body">
+          <!-- Black Box to Glass Box Header -->
+          <div id="glassHeader" style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-radius:18px;background:var(--ink);color:#FFFFFF;">
+            <div>
+              <small style="display:block;font:700 11px/1 var(--body);letter-spacing:0.12em;text-transform:uppercase;color:#6EE7B7;margin-bottom:5px;">Transparent Score Decomposition</small>
+              <b style="font:700 20px/1.2 var(--display);">Every Risk Point Is Traceable by Laypeople</b>
+            </div>
+            <span style="padding:8px 16px;border-radius:12px;background:var(--emerald);font:700 15px/1 var(--display);">Glass-Box ✓</span>
+          </div>
+
+          <!-- 4 Transparent Reason Cards -->
+          <div class="glass-grid">
+            <div class="g-card" id="gc0">
+              <small>Trigger 01 · Account</small>
+              <b>Verified Private ≠ Pro</b>
+              <span>Shows exact portal verification badge without conflating brokers.</span>
+            </div>
+            <div class="g-card" id="gc1">
+              <small>Trigger 02 · Kaution</small>
+              <b>Statutory Ratio Math</b>
+              <span>Displays exact multiplier (e.g. 1.7× cold rent vs. 3.0× cap).</span>
+            </div>
+            <div class="g-card" id="gc2">
+              <small>Trigger 03 · District</small>
+              <b>Osnabrück Mietspiegel</b>
+              <span>Compares €/m² visibly against real local neighborhood averages.</span>
+            </div>
+            <div class="g-card" id="gc3">
+              <small>Trigger 04 · Visuals</small>
+              <b>Photo &amp; Ghost Status</b>
+              <span>Flags recycled holiday photos and deactivated expired ads.</span>
+            </div>
+          </div>
+
+          <!-- Fail-Safe Anti-Hallucination Widget -->
+          <div class="failsafe-box" id="failBox">
+            <div>
+              <span class="tag tag-amber" style="height:24px;font-size:11px;margin-bottom:8px;">Anti-Hallucination Fail-Safe</span>
+              <b style="display:block;font:700 18px/1.25 var(--display);color:var(--ink);">If Kaution is cropped out of a screenshot:</b>
+              <span style="font:500 14px/1.4 var(--body);color:var(--ink-2);">Never invents “€600”. Prompts student directly to check &amp; click-to-edit.</span>
+            </div>
+            <div style="text-align:right;flex:none;">
+              <div style="font:600 12px/1 var(--mono);color:var(--rose);text-decoration:line-through;margin-bottom:6px;">AI Guess: €600</div>
+              <div style="padding:10px 14px;border-radius:12px;background:#FFFFFF;border:1.5px solid var(--amber);font:700 14px/1 var(--display);color:var(--amber);">Not Stated (Add ✎)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         SCENE 9: 05 · CONTRACT LAW (BGB TENANCY & B2C SCOPE)
+         ======================================================================= -->
+    <section id="sc-contract" class="scene">
+      <div class="grid-bg"></div>
+      <div class="chap"><i></i>Legal Deep-Dive <span class="pill-num">05 / 06</span></div>
+      <div class="brand-corner" data-brand></div>
+
+      <div class="law-left">
+        <span class="tag tag-navy">BGB §§ 551, 540, 327 ff. · § 4a WoVermRG · § 19 BMG</span>
+        <h2>Contract Law</h2>
+        <div class="law-risk">
+          <small>Two Contractual Layers</small>
+          <p><strong>(1) Tenancy layer:</strong> Protecting students from unlawful rental clauses. <strong>(2) App layer:</strong> Fulfilling B2C digital-product duties (§§ 327 ff. BGB) without acting as a broker or escrow guarantor.</p>
+        </div>
+        <div class="law-pts">
+          <div class="law-pt">
+            <i style="background:#E2E8F0;color:var(--ink)"><b>§551</b></i>
+            <div><b>Automated Kaution Ceiling Calculator</b><span>Enforces the statutory 3× cold-rent cap and reminds students of their right to pay in 3 monthly installments.</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:#E2E8F0;color:var(--ink)"><b>§540</b></i>
+            <div><b>Illegal Clause Screening</b><span>Flags inflated <em>Ablöse</em> furniture fees (§ 4a WoVermRG), unapproved sublets (§ 540 BGB), and refused <em>Anmeldung</em> (§ 19 BMG).</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:#E2E8F0;color:var(--ink)"><b>327</b></i>
+            <div><b>Clear B2C Digital Product Scope</b><span>Explicitly scoped as an informational decision-support tool—not legal counsel, brokerage, or payment warranty.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="law-stage">
+        <div class="stage-bar">
+          <div class="stage-dots"><b></b><b></b><b></b></div>
+          <div class="stage-title">Encoded Tenancy Law · § 551 BGB Live Check</div>
+          <span class="tag tag-navy" style="height:26px;font-size:11.5px;">German BGB Rules</span>
+        </div>
+        <div class="stage-body">
+          <!-- Animated § 551 BGB Kaution Meter -->
+          <div class="kaution-meter">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;">
+              <div>
+                <small style="font:700 11.5px/1 var(--body);letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">Statutory Security Deposit Check</small>
+                <b style="display:block;font:700 22px/1.2 var(--display);color:var(--ink);margin-top:4px;">Cold Rent €210/mo → Legal Cap €630 (3×)</b>
+              </div>
+              <b id="kAmount" style="font:700 32px/1 var(--display);color:var(--emerald);">€0</b>
+            </div>
+
+            <div class="k-bar-outer">
+              <div id="kBarFill"></div>
+              <div class="k-cap-line"></div>
+              <div class="k-cap-lbl">§ 551 BGB Max (3× = €630)</div>
+            </div>
+
+            <div id="kAlert" style="padding:12px 16px;border-radius:12px;background:var(--rose-l);border:1px solid var(--rose-b);color:var(--rose);font:700 14px/1.35 var(--body);opacity:0;">
+              ⚠ Statutory Violation Detected: €900 Kaution (4.3× cold rent) exceeds § 551 BGB limit by €270!
+            </div>
+          </div>
+
+          <!-- 3 Encoded Statutory Clauses -->
+          <div class="clause-grid">
+            <div class="clause-pill" id="cl0">
+              <span class="tag tag-emerald" style="height:24px;font-size:11px;margin-bottom:10px;">§ 551(2) BGB</span>
+              <b>3-Installment Right</b>
+              <span>Tenants may split Kaution into 3 equal monthly payments starting at handover.</span>
+            </div>
+            <div class="clause-pill" id="cl1">
+              <span class="tag tag-amber" style="height:24px;font-size:11px;margin-bottom:10px;">§ 4a WoVermRG</span>
+              <b>Ablöse Screening</b>
+              <span>Flags cash furniture buyouts exceeding fair residual value without receipts.</span>
+            </div>
+            <div class="clause-pill" id="cl2">
+              <span class="tag tag-rose" style="height:24px;font-size:11px;margin-bottom:10px;">§ 19 BMG</span>
+              <b>Mandatory Anmeldung</b>
+              <span>Landlords must confirm residency for Osnabrück Bürgeramt registration.</span>
+            </div>
+          </div>
+
+          <!-- B2C Scope Card -->
+          <div id="b2cScope" style="margin-top:20px;padding:16px 22px;border-radius:16px;background:var(--blue-l);border:1px solid var(--blue-m);display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <small style="display:block;font:700 11px/1 var(--body);letter-spacing:0.12em;text-transform:uppercase;color:var(--blue-d);margin-bottom:4px;">B2C Contract Boundary (§§ 327 ff. BGB)</small>
+              <b style="font:600 15.5px/1.3 var(--body);color:var(--ink);">Clear Informational Tool Scope · Transparent Limitations · Zero Hidden Broker Fees</b>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         SCENE 10: 06 · LIABILITY LAW (TORT, DEFAMATION & REDRESS)
+         ======================================================================= -->
+    <section id="sc-liability" class="scene">
+      <div class="grid-bg"></div>
+      <div class="chap"><i></i>Legal Deep-Dive <span class="pill-num">06 / 06</span></div>
+      <div class="brand-corner" data-brand></div>
+
+      <div class="law-left">
+        <span class="tag tag-rose">BGB §§ 823, 824 · StGB § 186 (Defamation)</span>
+        <h2>Liability Law</h2>
+        <div class="law-risk">
+          <small>Legal Applicability &amp; Risk</small>
+          <p>A false positive accusing a legitimate private landlord of being a “fraudster” creates severe tort liability for credit and reputation damage (§ 824, § 823(1) BGB).</p>
+        </div>
+        <div class="law-pts">
+          <div class="law-pt">
+            <i style="background:var(--rose-l);color:var(--rose)"><b>!</b></i>
+            <div><b>Non-Accusatory Factual Framing</b><span>Never alleges criminal intent. Reports verifiable factual anomalies (e.g., “−46% below average”, “€900 &gt; 3× cap”).</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:var(--rose-l);color:var(--rose)"><b>↺</b></i>
+            <div><b>Instant Landlord Right to Reply</b><span>Built-in dispute modal suppresses automated warnings immediately pending manual human review.</span></div>
+          </div>
+          <div class="law-pt">
+            <i style="background:var(--rose-l);color:var(--rose)"><b>✓</b></i>
+            <div><b>Fault &amp; Damage Mitigation (Verschulden)</b><span>Auditable rule weights, honest uncertainty states, and rapid redress minimize negligence exposure.</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="law-stage">
+        <div class="stage-bar">
+          <div class="stage-dots"><b></b><b></b><b></b></div>
+          <div class="stage-title">Defamation Shield · Probabilistic Language &amp; Redress</div>
+          <span class="tag tag-rose" style="height:26px;font-size:11.5px;">§§ 823 / 824 BGB</span>
+        </div>
+        <div class="stage-body">
+          <!-- High-Risk Accusatory Framing (Struck Through Live) -->
+          <div class="reframe-bad" id="refBad">
+            <small style="display:block;font:700 11.5px/1 var(--body);letter-spacing:0.12em;text-transform:uppercase;color:var(--rose);margin-bottom:8px;">High Liability Risk · Unlawful Defamation</small>
+            <b style="font:700 24px/1.25 var(--display);color:var(--ink);">“WARNING: This landlord is a criminal scammer!”</b>
+            <div class="strike-bar" id="strikeBar"></div>
+          </div>
+
+          <!-- Compliant Factual Framing -->
+          <div class="reframe-good" id="refGood">
+            <small style="display:block;font:700 11.5px/1 var(--body);letter-spacing:0.12em;text-transform:uppercase;color:var(--emerald);margin-bottom:8px;">Compliance by Design · Verifiable Factual Telemetry</small>
+            <b style="display:block;font:700 22px/1.3 var(--display);color:var(--ink);margin-bottom:8px;">“High Risk Score (94%) — 3 Objective Anomalies Detected”</b>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <span class="fact-pill">Rent −46% vs. District Avg</span>
+              <span class="fact-pill">Kaution €900 &gt; 3× Statutory Cap</span>
+              <span class="fact-pill">Reverse-Image Match Found</span>
+            </div>
+          </div>
+
+          <!-- Rapid Notice-and-Reply Workflow -->
+          <div class="redress-flow" id="redressFlow">
+            <div class="rf-step" id="rf0">
+              <small>Step 1 · Notice</small>
+              <b>“Report a Mistake”</b>
+              <span>Landlord clicks one-tap redress link on any report.</span>
+            </div>
+            <div class="rf-step" id="rf1">
+              <small>Step 2 · Freeze</small>
+              <b>Instant Suppression</b>
+              <span>Automated risk warning paused immediately to stop harm.</span>
+            </div>
+            <div class="rf-step" id="rf2">
+              <small>Step 3 · Resolution</small>
+              <b>Human Verification</b>
+              <span>Rectification or hash erasure logged under GDPR Art. 16/17.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         SCENE 11: CLOSING / EXECUTIVE TAKEAWAY
+         ======================================================================= -->
+    <section id="sc-end" class="scene">
+      <div class="grid-bg"></div>
+      <div id="endTop">
+        <div id="endLogo">
+          <svg viewBox="0 0 100 100" width="96" height="96">
+            <rect width="100" height="100" rx="26" fill="#2563EB" />
+            <path d="M50 20 L74 30 V50 C74 66 63 77 50 83 C37 77 26 66 26 50 V30 Z" fill="rgba(255,255,255,0.14)" stroke="#FFFFFF" stroke-width="4.5" stroke-linejoin="round" />
+            <path d="M40 52 L47 59 L62 43" fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <h1>Compliance as our <em>Trust Advantage.</em></h1>
+        <p>NiedersachScanner proves that strict European legal safeguards make student housing verification stronger, fairer, and safer.</p>
+      </div>
+
+      <div id="endPillars">
+        <div class="ep-card">
+          <i style="background:var(--blue-l);color:var(--blue)"><b>01</b></i>
+          <b>Data Law</b>
+          <span>Default PII masking &amp; ephemeral RAM</span>
+        </div>
+        <div class="ep-card">
+          <i style="background:var(--purple-l);color:var(--purple)"><b>02</b></i>
+          <b>IP Law</b>
+          <span>Single-item facts &amp; deep-linking</span>
+        </div>
+        <div class="ep-card">
+          <i style="background:var(--amber-l);color:var(--amber)"><b>03</b></i>
+          <b>Competition</b>
+          <span>Portal-neutral &amp; Private ≠ Pro</span>
+        </div>
+        <div class="ep-card">
+          <i style="background:var(--emerald-l);color:var(--emerald)"><b>04</b></i>
+          <b>Product Safety</b>
+          <span>Glass-box AI &amp; anti-hallucination</span>
+        </div>
+        <div class="ep-card">
+          <i style="background:#E2E8F0;color:var(--ink)"><b>05</b></i>
+          <b>Contract Law</b>
+          <span>§ 551 BGB meter &amp; B2C clarity</span>
+        </div>
+        <div class="ep-card">
+          <i style="background:var(--rose-l);color:var(--rose)"><b>06</b></i>
+          <b>Liability Law</b>
+          <span>Factual telemetry &amp; Right to Reply</span>
+        </div>
+      </div>
+
+      <div id="endFoot">
+        <div>
+          <h2>Thank you. Questions?</h2>
+          <span>NiedersachScanner · Student Housing Verifier MVP · Compliance by Design (Osnabrück)</span>
+        </div>
+        <span class="tag tag-blue" style="background:#2563EB;color:#FFFFFF;border-color:#60A5FA;height:40px;padding:0 20px;font-size:14px;">Live MVP Ready for Demo →</span>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- =========================================================================
+       FLOATING GLASSMORPHIC HUD (CLICKABLE SEGMENTS + CONTROLS)
+       ========================================================================= -->
+  <div id="hud">
+    <button id="prev" type="button" aria-label="Previous slide">‹</button>
+    <div id="bar"></div>
+    <button id="next" type="button" aria-label="Next slide">›</button>
+    <div id="hudLabel"></div>
+  </div>
+  <div id="help">→ / Space / Click next · ← back · 1–9 jump · F fullscreen · H hide bar</div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const $ = (id) => document.getElementById(id);
+      const Q = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+      const canvas = $('canvas');
+
+      /* -----------------------------------------------------------------------
+         1. VIEWPORT SCALING (FITS ANY DESKTOP, TABLET, OR MOBILE SCREEN)
+         ----------------------------------------------------------------------- */
+      function fit() {
+        const s = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
+        canvas.style.setProperty('--s', s);
+      }
+      fit();
+      window.addEventListener('resize', fit);
+
+      /* Inject crisp mini brand mark into all scene headers */
+      const miniLogo =
+        '<svg width="26" height="26" viewBox="0 0 100 100">' +
+        '<rect width="100" height="100" rx="26" fill="#2563EB"/>' +
+        '<path d="M50 22 L73 31 V50 C73 65 62 76 50 82 C38 76 27 65 27 50 V31 Z" fill="rgba(255,255,255,0.16)" stroke="#FFF" stroke-width="5.5" stroke-linejoin="round"/>' +
+        '<path d="M40 52 L47 59 L62 43" fill="none" stroke="#FFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '</svg><div>Niedersach<span>Scanner</span></div>';
+      Q('[data-brand]').forEach((el) => { el.innerHTML = miniLogo; });
+
+      /* -----------------------------------------------------------------------
+         2. MASTER TIMELINE ENGINE (REVERSIBLE STEP CHOREOGRAPHY)
+         ----------------------------------------------------------------------- */
+      const SECTIONS = ['Intro', 'Platform', 'Architecture', '6 Legal Pillars', 'Closing'];
+      const STEPS = [];
+      let master;
+      let cur = 0;
+      let ctl = null;
+
+      function step(name, sec, buildFn) {
+        const st = gsap.timeline();
+        buildFn(st);
+        if (st.duration() < 0.05) st.to({}, { duration: 0.05 });
+        const t0 = master.duration();
+        master.add(st, t0);
+        STEPS.push({ name, sec, t: master.duration() });
+      }
+
+      function showScene(st, sel, pos, dur = 0.55) {
+        st.to(sel, { autoAlpha: 1, duration: dur, ease: 'power2.out' }, pos);
+      }
+      function hideScene(st, sel, pos, dur = 0.45) {
+        st.to(sel, { autoAlpha: 0, duration: dur, ease: 'power2.in' }, pos);
+      }
+
+      /* Deterministic text morph helper (works forwards AND backwards!) */
+      function swapText(st, el, beforeTxt, afterTxt, pos) {
+        st.to({ p: 0 }, {
+          p: 1,
+          duration: 0.06,
+          onUpdate: function () {
+            el.textContent = this.progress() >= 0.5 ? afterTxt : beforeTxt;
+          }
+        }, pos);
+      }
+
+      function buildPresentation() {
+        try {
+          if (typeof gsap === 'undefined') {
+            document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif">GSAP failed to load. Please check your internet connection.</div>';
+            return;
+          }
+
+          master = gsap.timeline({ paused: true });
+
+          /* Pre-calculate SVG path lengths for crisp stroke-draw animations */
+          const shieldPath = $('shieldOutline');
+          const tickPath = $('shieldTick');
+          const sLen = shieldPath.getTotalLength();
+          const tLen = tickPath.getTotalLength();
+          gsap.set(shieldPath, { strokeDasharray: sLen, strokeDashoffset: sLen });
+          gsap.set(tickPath, { strokeDasharray: tLen, strokeDashoffset: tLen });
+
+          /* Initial states for all animated elements */
+          gsap.set('#introTile', { scale: 0.82, opacity: 0 });
+          gsap.set('#introWord', { opacity: 0, y: 26, letterSpacing: '0.06em' });
+          gsap.set('#introSub', { opacity: 0, y: 16 });
+          gsap.set('#introMeta', { opacity: 0, y: 14 });
+
+          gsap.set(['#pc0', '#pc1', '#pc2'], { opacity: 0, y: 36 });
+          gsap.set('#probBanner', { opacity: 0, y: 30 });
+
+          gsap.set(['#col0', '#col1', '#col2', '#col3'], { opacity: 0, y: 30 });
+          gsap.set(['#ex0', '#ex1', '#ex2', '#ex3'], { opacity: 0, x: -12 });
+          gsap.set('#verdictBadge', { opacity: 0, scale: 0.8 });
+
+          gsap.set('#cbdLine1', { opacity: 0, y: 30 });
+          gsap.set('#cbdLine2', { opacity: 0, y: 30 });
+          gsap.set('#orbitCenter', { scale: 0.5, opacity: 0 });
+          gsap.set(Q('.o-node'), { opacity: 0, scale: 0.85 });
+          gsap.set(Q('.orb-l, .orb-f'), { opacity: 0 });
+
+          gsap.set(Q('.law-left > *'), { opacity: 0, y: 18 });
+          gsap.set(Q('.law-stage'), { opacity: 0, y: 28 });
+
+          gsap.set(['#gdprB1', '#gdprB2'], { opacity: 0, y: 14 });
+          gsap.set(['#ipBlocked', '#ipAllowed', '#ipDeep'], { opacity: 0, y: 20 });
+          gsap.set(Q('#factPills .fact-pill'), { opacity: 0, scale: 0.8 });
+          gsap.set(Q('#portalRow .portal-chip'), { opacity: 0, y: -14 });
+          gsap.set(['#uwgHub', '#idPriv', '#idPro'], { opacity: 0, y: 18 });
+          gsap.set(['#glassHeader', '#gc0', '#gc1', '#gc2', '#gc3', '#failBox'], { opacity: 0, y: 18 });
+          gsap.set(['#cl0', '#cl1', '#cl2', '#b2cScope'], { opacity: 0, y: 18 });
+          gsap.set(['#refBad', '#refGood', '#rf0', '#rf1', '#rf2'], { opacity: 0, y: 18 });
+
+          gsap.set('#endTop', { opacity: 0, y: 26 });
+          gsap.set(Q('.ep-card'), { opacity: 0, y: 26, scale: 0.94 });
+          gsap.set('#endFoot', { opacity: 0, y: 26 });
+
+          /* =================================================================
+             STEP 1: BRAND INTRO
+             ================================================================= */
+          step('NiedersachScanner', 0, (st) => {
+            st.to('#introGlow', { opacity: 1, duration: 1.0 }, 0);
+            st.to('#introTile', { opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.6)' }, 0.05);
+            st.to(shieldPath, { strokeDashoffset: 0, duration: 0.8, ease: 'power2.out' }, 0.35);
+            st.to(tickPath, { strokeDashoffset: 0, duration: 0.45, ease: 'power2.out' }, 0.85);
+            st.to('#introSheen', { attr: { x: 260 }, duration: 0.9, ease: 'power2.inOut' }, 0.95);
+            st.to('#introWord', { opacity: 1, y: 0, letterSpacing: '-0.04em', duration: 0.75, ease: 'power3.out' }, 0.9);
+            st.to('#introSub', { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out' }, 1.25);
+            st.to('#introMeta', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 1.5);
+          });
+
+          /* =================================================================
+             STEP 2: THE PROBLEM IN OSNABRÜCK
+             ================================================================= */
+          step('The Housing Fraud Problem', 1, (st) => {
+            hideScene(st, '#sc-intro', 0, 0.45);
+            showScene(st, '#sc-problem', 0.15, 0.55);
+            st.to(['#pc0', '#pc1', '#pc2'], { opacity: 1, y: 0, duration: 0.55, stagger: 0.14, ease: 'power3.out' }, 0.45);
+            st.to('#probBanner', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 0.95);
+            const cObj = { v: 0 };
+            st.fromTo(cObj, { v: 0 }, {
+              v: 900,
+              duration: 1.1,
+              ease: 'power2.out',
+              immediateRender: false,
+              onUpdate: () => { $('probCounter').textContent = '€' + Math.round(cObj.v) + '+'; }
+            }, 1.05);
+          });
+
+          /* =================================================================
+             STEP 3: HOW THE PLATFORM WORKS (4-STAGE ANIMATED PIPELINE)
+             ================================================================= */
+          step('How NiedersachScanner Works', 1, (st) => {
+            hideScene(st, '#sc-problem', 0, 0.45);
+            showScene(st, '#sc-how', 0.15, 0.55);
+
+            // Step 1 Card
+            st.to('#col0', { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 0.4);
+            st.to('#pFlow1A', { opacity: 1, duration: 0.3 }, 0.7);
+
+            // Step 2 Card + Live Laser Sweep
+            st.to('#col1', { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 0.75);
+            st.fromTo('#scanLaser', { top: 0, opacity: 1 }, { top: 310, opacity: 1, duration: 0.95, ease: 'power1.inOut', immediateRender: false }, 1.0);
+            st.to('#scanLaser', { opacity: 0, duration: 0.2 }, 1.95);
+            st.to(['#ex0', '#ex1', '#ex2', '#ex3'], { opacity: 1, x: 0, duration: 0.3, stagger: 0.18 }, 1.1);
+            st.to('#pFlow2A', { opacity: 1, duration: 0.3 }, 1.85);
+
+            // Step 3 Card + Animated Benchmark Meters
+            st.to('#col2', { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 1.9);
+            st.to('#mRent', { width: '92%', duration: 0.65, ease: 'power2.out' }, 2.2);
+            st.to('#mKaut', { width: '88%', duration: 0.65, ease: 'power2.out' }, 2.35);
+            st.to('#mPhoto', { width: '96%', duration: 0.65, ease: 'power2.out' }, 2.5);
+            st.to('#pFlow3A', { opacity: 1, duration: 0.3 }, 2.65);
+
+            // Step 4 Card + Animated 94% Risk Donut
+            st.to('#col3', { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 2.7);
+            st.to('#riskArc', { attr: { 'stroke-dashoffset': 402.1 * (1 - 0.94) }, duration: 1.0, ease: 'power3.out' }, 2.95);
+            const rObj = { v: 0 };
+            st.fromTo(rObj, { v: 0 }, {
+              v: 94,
+              duration: 1.0,
+              ease: 'power3.out',
+              immediateRender: false,
+              onUpdate: () => { $('riskNum').textContent = Math.round(rObj.v) + '%'; }
+            }, 2.95);
+            st.to('#verdictBadge', { opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(2)' }, 3.6);
+          });
+
+          /* =================================================================
+             STEP 4: COMPLIANCE BY DESIGN — KINETIC STATEMENT -> 6-PILLAR HUB
+             ================================================================= */
+          step('Compliance by Design Architecture', 2, (st) => {
+            hideScene(st, '#sc-how', 0, 0.45);
+            showScene(st, '#sc-cbd', 0.15, 0.55);
+
+            // Kinetic bold thesis
+            st.to('#cbdLine1', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 0.4);
+            st.to('#cbdLine2', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 0.85);
+
+            // Morph statement away & expand 6-pillar orbital architecture
+            st.to('#cbdStatement', { opacity: 0, scale: 0.94, duration: 0.45, ease: 'power2.in' }, 1.85);
+            st.to('#cbdOrbit', { opacity: 1, duration: 0.4 }, 2.15);
+            st.to('#orbitCenter', { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' }, 2.2);
+            st.to(Q('.orb-l, .orb-f'), { opacity: 1, duration: 0.45, stagger: 0.05 }, 2.5);
+            st.to(Q('.o-node'), { opacity: 1, scale: 1, duration: 0.45, stagger: 0.1, ease: 'back.out(1.6)' }, 2.6);
+          });
+
+          /* =================================================================
+             STEP 5: 01 · DATA LAW (GDPR)
+             ================================================================= */
+          step('01 · Data Law (GDPR)', 3, (st) => {
+            hideScene(st, '#sc-cbd', 0, 0.45);
+            showScene(st, '#sc-data', 0.15, 0.55);
+
+            st.to(Q('#sc-data .law-left > *'), { opacity: 1, y: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out' }, 0.4);
+            st.to('#sc-data .law-stage', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 0.5);
+
+            // Live PII Masking Transformation
+            swapText(st, $('piiStatus'), 'Raw Input', '✓ Masked by Default', 1.25);
+            swapText(st, $('piiName'), 'Lukas Schmidt', 'Lukas S*** (Masked)', 1.25);
+            swapText(st, $('piiPhone'), '+49 176 4429 1834', '+49 176 •••• 834', 1.4);
+            swapText(st, $('piiBlob'), 'wg_print_482KB.png', 'Purged from RAM', 2.0);
+            st.to(['#piiName', '#piiPhone'], { borderColor: '#93C5FD', backgroundColor: '#EFF6FF', color: '#1D4ED8', duration: 0.35 }, 1.3);
+
+            // Ephemeral RAM Auto-Wipe Animation
+            const ramObj = { kb: 482 };
+            st.fromTo(ramObj, { kb: 482 }, {
+              kb: 0,
+              duration: 1.0,
+              ease: 'power2.inOut',
+              immediateRender: false,
+              onUpdate: () => { $('ramVal').textContent = Math.round(ramObj.kb) + ' KB in RAM'; }
+            }, 1.55);
+            st.to('#ramFill', { width: '0%', duration: 1.0, ease: 'power2.inOut' }, 1.55);
+            st.to('#ramDone', { opacity: 1, duration: 0.3 }, 2.45);
+            st.to(['#gdprB1', '#gdprB2'], { opacity: 1, y: 0, duration: 0.4, stagger: 0.12 }, 2.3);
+          });
+
+          /* =================================================================
+             STEP 6: 02 · IP LAW (COPYRIGHT, DATABASE RIGHTS, TRADEMARKS)
+             ================================================================= */
+          step('02 · IP Law (UrhG & MarkenG)', 3, (st) => {
+            hideScene(st, '#sc-data', 0, 0.45);
+            showScene(st, '#sc-ip', 0.15, 0.55);
+
+            st.to(Q('#sc-ip .law-left > *'), { opacity: 1, y: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out' }, 0.4);
+            st.to('#sc-ip .law-stage', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 0.5);
+
+            st.to('#ipBlocked', { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 0.85);
+            st.to('#ipAllowed', { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 1.25);
+            st.to(Q('#factPills .fact-pill'), { opacity: 1, scale: 1, duration: 0.32, stagger: 0.09, ease: 'back.out(1.8)' }, 1.5);
+            st.to('#ipDeep', { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 2.0);
+          });
+
+          /* =================================================================
+             STEP 7: 03 · COMPETITION LAW (UWG)
+             ================================================================= */
+          step('03 · Competition Law (UWG)', 3, (st) => {
+            hideScene(st, '#sc-ip', 0, 0.45);
+            showScene(st, '#sc-comp', 0.15, 0.55);
+
+            st.to(Q('#sc-comp .law-left > *'), { opacity: 1, y: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out' }, 0.4);
+            st.to('#sc-comp .law-stage', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 0.5);
+
+            st.to(Q('#portalRow .portal-chip'), { opacity: 1, y: 0, duration: 0.35, stagger: 0.08, ease: 'back.out(1.6)' }, 0.8);
+            st.to('#uwgFlow', { opacity: 1, duration: 0.35 }, 1.1);
+            st.to('#uwgHub', { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 1.25);
+            st.to(['#idPriv', '#idPro'], { opacity: 1, y: 0, duration: 0.45, stagger: 0.16, ease: 'power3.out' }, 1.6);
+          });
+
+          /* =================================================================
+             STEP 8: 04 · PRODUCT SAFETY LAW (EU AI ACT & GPSR)
+             ================================================================= */
+          step('04 · Product Safety Law (AI Act)', 3, (st) => {
+            hideScene(st, '#sc-comp', 0, 0.45);
+            showScene(st, '#sc-safety', 0.15, 0.55);
+
+            st.to(Q('#sc-safety .law-left > *'), { opacity: 1, y: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out' }, 0.4);
+            st.to('#sc-safety .law-stage', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 0.5);
+
+            st.to('#glassHeader', { opacity: 1, y: 0, duration: 0.45 }, 0.8);
+            st.to(['#gc0', '#gc1', '#gc2', '#gc3'], { opacity: 1, y: 0, duration: 0.38, stagger: 0.12, ease: 'power3.out' }, 1.05);
+            st.to('#failBox', { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.5)' }, 1.65);
+          });
+
+          /* =================================================================
+             STEP 9: 05 · CONTRACT LAW (BGB TENANCY & B2C SCOPE)
+             ================================================================= */
+          step('05 · Contract Law (BGB)', 3, (st) => {
+            hideScene(st, '#sc-safety', 0, 0.45);
+            showScene(st, '#sc-contract', 0.15, 0.55);
+
+            st.to(Q('#sc-contract .law-left > *'), { opacity: 1, y: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out' }, 0.4);
+            st.to('#sc-contract .law-stage', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 0.5);
+
+            // Live § 551 BGB Deposit Meter sweeping past the 3x statutory limit!
+            const kObj = { v: 0 };
+            st.fromTo(kObj, { v: 0 }, {
+              v: 900,
+              duration: 1.25,
+              ease: 'power2.inOut',
+              immediateRender: false,
+              onUpdate: () => {
+                const val = Math.round(kObj.v);
+                const el = $('kAmount');
+                el.textContent = '€' + val;
+                el.style.color = val > 630 ? '#E11D48' : val > 500 ? '#D97706' : '#059669';
+              }
+            }, 0.9);
+            st.to('#kBarFill', { width: '94%', duration: 1.25, ease: 'power2.inOut' }, 0.9);
+            st.to('#kAlert', { opacity: 1, duration: 0.35 }, 1.95);
+            st.to(['#cl0', '#cl1', '#cl2'], { opacity: 1, y: 0, duration: 0.4, stagger: 0.12, ease: 'power3.out' }, 2.1);
+            st.to('#b2cScope', { opacity: 1, y: 0, duration: 0.4 }, 2.55);
+          });
+
+          /* =================================================================
+             STEP 10: 06 · LIABILITY LAW (TORT, DEFAMATION & REDRESS)
+             ================================================================= */
+          step('06 · Liability Law (BGB §§ 823–824)', 3, (st) => {
+            hideScene(st, '#sc-contract', 0, 0.45);
+            showScene(st, '#sc-liability', 0.15, 0.55);
+
+            st.to(Q('#sc-liability .law-left > *'), { opacity: 1, y: 0, duration: 0.45, stagger: 0.1, ease: 'power3.out' }, 0.4);
+            st.to('#sc-liability .law-stage', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 0.5);
+
+            // Accusatory text struck through live -> replaced by factual telemetry
+            st.to('#refBad', { opacity: 1, y: 0, duration: 0.4 }, 0.8);
+            st.to('#strikeBar', { scaleX: 1, duration: 0.45, ease: 'power2.inOut' }, 1.25);
+            st.to('#refBad', { opacity: 0.55, duration: 0.3 }, 1.65);
+
+            st.to('#refGood', { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, 1.65);
+            st.to(['#rf0', '#rf1', '#rf2'], { opacity: 1, y: 0, duration: 0.4, stagger: 0.16, ease: 'power3.out' }, 2.15);
+          });
+
+          /* =================================================================
+             STEP 11: EXECUTIVE CLOSING
+             ================================================================= */
+          step('Trust Advantage · Q&A', 4, (st) => {
+            hideScene(st, '#sc-liability', 0, 0.45);
+            showScene(st, '#sc-end', 0.15, 0.55);
+
+            st.to('#endTop', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.4);
+            st.to(Q('.ep-card'), { opacity: 1, y: 0, scale: 1, duration: 0.42, stagger: 0.08, ease: 'back.out(1.5)' }, 0.75);
+            st.to('#endFoot', { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 1.35);
+          });
+
+          /* Build clickable HUD bar and start playing Step 1 automatically */
+          buildBar();
+          updateHUD();
+          wakeHUD();
+
+          // Animate Step 1 intro on load
+          ctl = gsap.to(master, { time: STEPS[0].t, duration: STEPS[0].t, ease: 'none' });
+        } catch (err) {
+          console.error('Presentation initialization error:', err);
+        }
+      }
+
+      /* -----------------------------------------------------------------------
+         3. NAVIGATION ENGINE (CLICK, KEYBOARD, TOUCH SWIPE, HUD JUMP)
+         ----------------------------------------------------------------------- */
+      function go(i) {
+        if (!master || !STEPS.length) return;
+        i = Math.max(0, Math.min(STEPS.length - 1, i));
+        if (i === cur) return;
+
+        const from = cur;
+        const wasRunning = ctl && ctl.isActive();
+        if (ctl) ctl.kill();
+        if (wasRunning) master.time(STEPS[from].t);
+
+        cur = i;
+        updateHUD();
+        wakeHUD();
+
+        const target = STEPS[i].t;
+        // Direct jump if skipping multiple slides
+        if (Math.abs(i - from) > 1) {
+          master.time(target);
+          return;
+        }
+        const isBack = i < from;
+        const dist = Math.abs(target - master.time());
+        ctl = gsap.to(master, {
+          time: target,
+          duration: Math.max(0.25, dist / (isBack ? 2.0 : 1.0)),
+          ease: 'none'
+        });
+      }
+
+      function buildBar() {
+        const bar = $('bar');
+        bar.innerHTML = STEPS.map((s, i) => {
+          const gap = i > 0 && STEPS[i - 1].sec !== s.sec ? 'gap' : '';
+          return `<i class="${gap}" data-idx="${i}" title="${i + 1}. ${s.name}"></i>`;
+        }).join('');
+
+        Q('i', bar).forEach((dot) => {
+          dot.addEventListener('click', (e) => {
+            e.stopPropagation();
+            go(Number(dot.dataset.idx));
+          });
+        });
+      }
+
+      function updateHUD() {
+        Q('#bar i').forEach((dot, i) => {
+          dot.classList.toggle('cur', i === cur);
+          dot.classList.toggle('done', i < cur);
+        });
+        const s = STEPS[cur];
+        $('hudLabel').textContent = `${cur + 1} / ${STEPS.length} · ${SECTIONS[s.sec]} · ${s.name}`;
+      }
+
+      let idleTimer;
+      function wakeHUD() {
+        $('hud').classList.remove('idle');
+        $('help').classList.remove('idle');
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+          $('hud').classList.add('idle');
+          $('help').classList.add('idle');
+        }, 3200);
+      }
+
+      window.addEventListener('mousemove', wakeHUD);
+
+      $('prev').addEventListener('click', (e) => { e.stopPropagation(); go(cur - 1); });
+      $('next').addEventListener('click', (e) => { e.stopPropagation(); go(cur + 1); });
+      canvas.addEventListener('click', () => go(cur + 1));
+
+      /* Touch swipe support for mobile & tablets */
+      let touchX = 0;
+      canvas.addEventListener('touchstart', (e) => { touchX = e.changedTouches[0].screenX; }, { passive: true });
+      canvas.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].screenX - touchX;
+        if (dx < -40) go(cur + 1);
+        else if (dx > 40) go(cur - 1);
+      }, { passive: true });
+
+      /* Keyboard shortcuts matching Workster */
+      window.addEventListener('keydown', (e) => {
+        const k = e.key;
+        if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) {
+          e.preventDefault();
+          go(cur + 1);
+        } else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) {
+          e.preventDefault();
+          go(cur - 1);
+        } else if (k === 'Home') {
+          go(0);
+        } else if (k === 'End') {
+          go(STEPS.length - 1);
+        } else if (/^[1-9]$/.test(k)) {
+          const idx = Math.min(STEPS.length - 1, Number(k) - 1);
+          go(idx);
+        } else if (k === '0') {
+          go(9);
+        } else if (k === 'h' || k === 'H') {
+          document.body.classList.toggle('nohud');
+        } else if (k === 'f' || k === 'F') {
+          try {
+            if (document.fullscreenElement) document.exitFullscreen();
+            else document.documentElement.requestFullscreen().catch(() => {});
+          } catch (_) {}
+        }
+      });
+
+      /* Boot cleanly after window load */
+      window.onload = function () {
+        buildPresentation();
+      };
+    })();
+  </script>
+</body>
+</html>
